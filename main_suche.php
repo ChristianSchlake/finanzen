@@ -64,9 +64,11 @@
 	$whereClause="";
 	$kontoVon="%";
 	$kontoNach="%";
+
 	$maxEintraegeProSite=abfrageEinstellung("maxEintraegeProSite");
 	$showEingabemaske=abfrageEinstellung("showEingabemaske");
 	$showSuchmaske=abfrageEinstellung("showSuchmaske");
+
 
 	foreach ($_POST as $key => $value) {
 		if ($key=="uebergabe") {
@@ -117,30 +119,30 @@
 // Neuer Eintrag
 	if ($neuerEintrag==1) {
 		$betragNeg=$betrag*-1;
-		$MaxID=mysqli_query("SELECT MAX(id) FROM metadaten");
+		$MaxID=mysqli_query($mysqli,"SELECT MAX(id) FROM metadaten");
 		$MaxID=mysqli_fetch_array($MaxID, MYSQL_BOTH);
 		$MaxID=$MaxID[0];
 		$MaxID=$MaxID+1;
 		$_SESSION['id']=$MaxID;
 		$aufruf="INSERT INTO metadaten (id,datum,verwendung,beschreibung) VALUES (".$MaxID.",STR_TO_DATE('".$datum."', '%d.%m.%Y'),".$verwendung.",\"".$beschreibung."\")";
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 		$aufruf="INSERT INTO buchungen (konto,betrag,idBuchung) VALUES (".$kontoVon.",".$betragNeg.",".$MaxID.")";
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 		$aufruf="INSERT INTO buchungen (konto,betrag,idBuchung) VALUES (".$kontoNach.",".$betrag.",".$MaxID.")";
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 	}
 // Update Eintrag
 	if ($updateEintrag==1) {
 		$betragNeg=$betrag*-1;
 
 		$aufruf="UPDATE metadaten SET datum=STR_TO_DATE(\"".$datum."\", \"%d.%m.%Y\"),verwendung=".$verwendung.",beschreibung=\"".$beschreibung."\" WHERE id=".$id;
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 
 		$aufruf="UPDATE buchungen SET konto=".$kontoVon.",betrag=".$betragNeg." WHERE id=".$idVon;
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 
 		$aufruf="UPDATE buchungen SET konto=".$kontoNach.",betrag=".$betrag." WHERE id=".$idNach;
-		$eintragen = mysqli_query($aufruf);
+		$eintragen = mysqli_query($mysqli,$aufruf);
 
 		$_SESSION['id']=$id;
 	}
@@ -250,16 +252,14 @@
 			<legend>Tabelle</legend>
 			<?php
 				$abfrage="SELECT * FROM buchungen INNER JOIN metadaten as meta ON (idBuchung = meta.id) inner join buchung_kategorie as buchung on (buchung.buchung_kategorieID = konto) inner join verwendung as verw on (verw.verwendungID = meta.verwendung) ".$whereClause." ORDER BY ".$sort." ".$sortBy;
-				$ergebnis = mysqli_query($abfrage);
+				$ergebnis = mysqli_query($mysqli,$abfrage);
 				$menge = mysqli_num_rows($ergebnis);
 
 				$abfrage=$abfrage." LIMIT ".$_SESSION['startPage'].",".$maxEintraegeProSite;
-				$ergebnis = mysqli_query($abfrage);
-//				echo $abfrage;
+				$ergebnis = mysqli_query($mysqli,$abfrage);
 
 				$abfrage2="SELECT sum(betrag) as summe FROM buchungen INNER JOIN metadaten as meta ON (idBuchung = meta.id) inner join buchung_kategorie as buchung on (buchung.buchung_kategorieID = konto) inner join verwendung as verw on (verw.verwendungID = meta.verwendung) ".$whereClause." ORDER BY ".$sort." ".$sortBy;
-//				echo "<br>",$abfrage2;
-				$ergebnis2=mysqli_query($abfrage2);
+				$ergebnis2=mysqli_query($mysqli,$abfrage2);
 				$row2 = mysqli_fetch_assoc($ergebnis2);
 				$summe = $row2['summe'];
 
@@ -312,7 +312,8 @@
 						<?php
 							echo "Menge: ",$menge,"<br>";
 							echo "<li class=\"arrow\"><a href=\"main_suche.php?startPage=",$_SESSION['startPage']-$maxEintraegeProSite,"\">&laquo;</a></li>";
-							for ($i=0; $i < $menge; $i=$i+$maxEintraegeProSite) { 								
+
+/*							for ($i=0; $i < $menge; $i=$i+$maxEintraegeProSite) { 								
 								if($i>=$_SESSION['startPage'] and $i <$_SESSION['startPage']+$maxEintraegeProSite){
 									echo "<li class=\"current\"><a href=\"main_suche.php?startPage=",$i,"\">",$i,"</a></li>";
 								}
@@ -320,6 +321,7 @@
 									echo "<li><a href=\"main_suche.php?startPage=",$i,"\">",$i,"</a></li>";
 								}
 							}
+*/
 							echo "<li class=\"arrow\"><a href=\"main_suche.php?startPage=",$_SESSION['startPage']+$maxEintraegeProSite,"\">&raquo;</a></li>";							
 						?>
 					</ul>
@@ -349,7 +351,7 @@
 	</div>
 
 	<?php
-		mysqli_close($verbindung);
+		mysqli_close($mysqli);
 	?>
 
 

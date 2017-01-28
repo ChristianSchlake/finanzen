@@ -1,7 +1,7 @@
 <?php
 	global $mysqli;
 
-	$serverhost="localhost";
+	$serverhost="192.168.2.105";
 	$db_user="somebody";
 	$db_pass="eFQVMXuFfyNafJWm";
 	$db_database="finanzen";
@@ -18,6 +18,6 @@
 
 	$result = $mysqli->query("SET CHARACTER SET utf8");
 	$result = $mysqli->query("SET NAMES utf8");
-
+	
 	header("Content-type:text/html; charset=utf8");
 ?>

@@ -19,7 +19,7 @@
 				ON b.".$tabelle."ID = a.son
 			where a.father = $root_id
 		";
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli, $abfrage);
 		$spacer=str_repeat("&nbsp;",8*$stufe);
 		while($row = mysqli_fetch_object($ergebnis)) {
 			$abfrage_sohn="
@@ -31,7 +31,7 @@
 					ON b.".$tabelle."ID = a.son
 				where a.father = $row->son
 			";
-			$ergebnis_sohn=mysqli_query($abfrage_sohn);
+			$ergebnis_sohn=mysqli_query($mysqli,$abfrage_sohn);
 			$zahl=mysqli_num_rows($ergebnis_sohn);
 			if($zahl>0) {
 				echo "<option DISABLED>",$spacer,$row->$tabelle,"</option>";
@@ -63,7 +63,7 @@
 						AND meta.datum <= STR_TO_DATE('".$datumBis."','%d.%m.%Y')";
 //		echo "<br>";
 //		echo $abfrage,"<br>";
-		$ergebnis=mysqli_query($abfrage);
+		$ergebnis=mysqli_query($mysqli,$abfrage);
 		$row = mysqli_fetch_assoc($ergebnis);
 		$GesSumme = $GesSumme + $row['summe'];
 //		echo "GesSumme: ",$GesSumme,"<br>";
@@ -77,7 +77,7 @@
 			where a.father = $root_id
 		";
 //		echo $abfrage,"<br>";
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli,$abfrage);
 
 		while($row = mysqli_fetch_object($ergebnis)) {
 /*			$abfrage_sohn="
@@ -90,7 +90,7 @@
 				where a.father = $row->son
 			";
 */
-//			$ergebnis_sohn=mysqli_query($abfrage_sohn);
+//			$ergebnis_sohn=mysqli_query($mysqli,$abfrage_sohn);
 //			$zahl=mysqli_num_rows($ergebnis_sohn);
 //			if($zahl>0) {
 				auswertungGesSumme($row->son,$tabelle,$datumVon,$datumBis,$spalte);
@@ -108,7 +108,7 @@
 				ON b.".$tabelle."ID = a.son
 			where a.father = $root_id
 		";
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli,$abfrage);
 		if ($mitSpacer==true) {
 			$spacer=str_repeat("&nbsp;",8*$stufe); // "&nbsp;" --> Leerzeichen (Non Breaking Space)
 		} else {
@@ -122,7 +122,7 @@
 					ON b.".$tabelle."ID = a.son
 				where a.father = $row->son
 			";
-			$ergebnis_sohn=mysqli_query($abfrage_sohn);
+			$ergebnis_sohn=mysqli_query($mysqli,$abfrage_sohn);
 			$zahl=mysqli_num_rows($ergebnis_sohn);
 			$father=$row->father;
 			$son=$row->son;
@@ -141,7 +141,7 @@
 			SELECT DISTINCT *
 			FROM ".$tabelle."
 		";
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli,$abfrage);
 		while($row = mysqli_fetch_object($ergebnis)) {
 			$id=$tabelle."ID";
 			$father="";
@@ -165,7 +165,7 @@
 			where a.father = $root_id
 		";
 //		echo "abfrage: ",$abfrage;
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli,$abfrage);
 		while($row = mysqli_fetch_object($ergebnis)) {
 			$abfrage_sohn="
 				SELECT DISTINCT
@@ -176,7 +176,7 @@
 					ON b.".$tabelle."ID = a.son
 				where a.father = $row->son
 			";
-			$ergebnis_sohn=mysqli_query($abfrage_sohn);
+			$ergebnis_sohn=mysqli_query($mysqli,$abfrage_sohn);
 			$zahl=mysqli_num_rows($ergebnis_sohn);
 			if($zahl>0) {
 				echo "<option DISABLED>",$row->$tabelle,"</option>";
@@ -208,8 +208,8 @@
 		$spaltenBreiteNeuesDokumentFormular=array();
 		$editStatus=abfrageEinstellung("editStatus");
 		// Spalten ermitteln
-		$result = mysqli_query("SELECT * FROM typenDefinition ORDER BY reihenfolge");
-		while ($row = mysqli_fetch_object($result)) {
+		$result = mysqli_query($mysqli,"SELECT * FROM typenDefinition ORDER BY reihenfolge");
+		while ($row = mysqli_fetch_object( $result)) {
 			$spaltenName[]=$row->name;
 			$spaltenTyp[]=$row->typ;
 			$spaltenBeschreibung[]=$row->beschreibung;
@@ -298,8 +298,8 @@
 				ON b.id = a.son
 			where a.father = $root_id
 		";
-		$ergebnis = mysqli_query($abfrage);
-		while($row = mysqli_fetch_object($ergebnis)) {
+		$ergebnis = mysqli_query($mysqli,$abfrage);
+		while($row = mysqli_fetch_object( $ergebnis)) {
 			$abrage_sohn="
 				SELECT DISTINCT
 					a.son,
@@ -309,7 +309,7 @@
 					ON b.id = a.son
 				where a.father = $row->son
 			";
-			$ergebnis_sohn=mysqli_query($abrage_sohn);
+			$ergebnis_sohn=mysqli_query($mysqli,$abrage_sohn);
 			$zahl=mysqli_num_rows($ergebnis_sohn);
 			if($zahl>0) {
 				echo "<li class=\"has-dropdown\"><a href=\"?ordner=",$row->son,"\">",$row->name,"</a>";
@@ -326,15 +326,15 @@
 	}
 	function abfrageEinstellung($einstellung) {
 		$abfrage="SELECT DISTINCT * FROM einstellungen WHERE name='".$einstellung."' ORDER BY id";
-		$ergebnis = mysqli_query($abfrage);
-		while($row = mysqli_fetch_object($ergebnis)) {
+		$ergebnis = mysqli_query($mysqli,$abfrage);
+		while($row = mysqli_fetch_object( $ergebnis)) {
 			$result=$row->wert;
 		}
 		return $result;
 	}
 	function abfrageEinstellungADDFile($einstellung) {
 		$abfrage="SELECT DISTINCT * FROM typenDefinition WHERE name='".$einstellung."' ORDER BY reihenfolge";
-		$ergebnis = mysqli_query($abfrage);
+		$ergebnis = mysqli_query($mysqli,$abfrage);
 		while($row = mysqli_fetch_object($ergebnis)) {
 			$result=$row->eingabewert;
 		}
