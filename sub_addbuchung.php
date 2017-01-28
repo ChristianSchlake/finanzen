@@ -4,7 +4,11 @@
 		</div>
 		<div class="small-12 large-9 columns">
 			<?php
-				echo "<input type=\"text\" name=\"datum\" value=\"".$datum."\" placeholder=\"Datum der Buchung\">";
+				if ($datum!="") {
+					echo "<input type=\"text\" name=\"datum\" value=\"".$datum."\" placeholder=\"Datum der Buchung\">";
+				} else {
+					echo "<input type=\"text\" name=\"datum\" value=\"".date("d.m.Y")."\" placeholder=\"Datum der Buchung\">";
+				}
 			?>
 		</div>
 
@@ -14,7 +18,11 @@
 		<div class="small-12 large-9 columns">
 			<select name="kontoVon">
 				<?php
-					generateListOrdnerFormular(0,$kontoVon,"buchung_kategorie",0);
+					if ($kontoVon!="%") {
+						generateListOrdnerFormular(0,$kontoVon,"buchung_kategorie",0);
+					} else {
+						generateListOrdnerFormular(0,"101","buchung_kategorie",0);
+					}
 				?>
 			</select>
 		</div>
@@ -25,7 +33,11 @@
 		<div class="small-12 large-9 columns">
 			<select name="kontoNach">
 				<?php
-					generateListOrdnerFormular(0,$kontoNach,"buchung_kategorie",0);
+					if ($kontoNach!="%") {
+						generateListOrdnerFormular(0,$kontoNach,"buchung_kategorie",0);
+					} else {
+						generateListOrdnerFormular(0,"44","buchung_kategorie",0);
+					}
 				?>
 			</select>
 		</div>

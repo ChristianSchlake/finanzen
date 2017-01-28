@@ -24,7 +24,7 @@
 	if (!isset($_SESSION['id'])) {$_SESSION['id'] = "%";}
 
 	if (!isset($_SESSION['startPage'])) {$_SESSION['startPage'] ="0";}
-	$maxEintraegeProSite="20";
+
 ?>
 
 <head>
@@ -62,6 +62,12 @@
 	$sortBy="DESC";
 	$sort="datum";
 	$whereClause="";
+	$kontoVon="%";
+	$kontoNach="%";
+	$maxEintraegeProSite=abfrageEinstellung("maxEintraegeProSite");
+	$showEingabemaske=abfrageEinstellung("showEingabemaske");
+	$showSuchmaske=abfrageEinstellung("showSuchmaske");
+
 	foreach ($_POST as $key => $value) {
 		if ($key=="uebergabe") {
 			switch ($value) {
@@ -111,30 +117,30 @@
 // Neuer Eintrag
 	if ($neuerEintrag==1) {
 		$betragNeg=$betrag*-1;
-		$MaxID=mysql_query("SELECT MAX(id) FROM metadaten");
-		$MaxID=mysql_fetch_array($MaxID, MYSQL_BOTH);
+		$MaxID=mysqli_query("SELECT MAX(id) FROM metadaten");
+		$MaxID=mysqli_fetch_array($MaxID, MYSQL_BOTH);
 		$MaxID=$MaxID[0];
 		$MaxID=$MaxID+1;
 		$_SESSION['id']=$MaxID;
 		$aufruf="INSERT INTO metadaten (id,datum,verwendung,beschreibung) VALUES (".$MaxID.",STR_TO_DATE('".$datum."', '%d.%m.%Y'),".$verwendung.",\"".$beschreibung."\")";
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 		$aufruf="INSERT INTO buchungen (konto,betrag,idBuchung) VALUES (".$kontoVon.",".$betragNeg.",".$MaxID.")";
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 		$aufruf="INSERT INTO buchungen (konto,betrag,idBuchung) VALUES (".$kontoNach.",".$betrag.",".$MaxID.")";
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 	}
 // Update Eintrag
 	if ($updateEintrag==1) {
 		$betragNeg=$betrag*-1;
 
 		$aufruf="UPDATE metadaten SET datum=STR_TO_DATE(\"".$datum."\", \"%d.%m.%Y\"),verwendung=".$verwendung.",beschreibung=\"".$beschreibung."\" WHERE id=".$id;
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 
 		$aufruf="UPDATE buchungen SET konto=".$kontoVon.",betrag=".$betragNeg." WHERE id=".$idVon;
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 
 		$aufruf="UPDATE buchungen SET konto=".$kontoNach.",betrag=".$betrag." WHERE id=".$idNach;
-		$eintragen = mysql_query($aufruf);
+		$eintragen = mysqli_query($aufruf);
 
 		$_SESSION['id']=$id;
 	}
@@ -199,51 +205,62 @@
 			            </ul>
 			    </li>
 			    <li class="divider"></li>
+				<li><a href="sub_einstellungen.php"><i class="fi-wrench"></i> Einstellungen</a></li>
+			    <li class="divider"></li>
 				<li class="active"><a href="main_suche.php" data-reveal-id="newFileModal"><i class="fi-page-add"></i> neuer Eintrag</a></li>
 				<li class="active"><a href="main_suche.php" data-reveal-id="searchFileModal"><i class="fi-page-search"></i> Eintrag suchen</a></li>
 			</ul>
 		</section>
 	</nav>
 
-	<div class="row">
-		<div class="small-12 large-6 columns">
-			<div class="row">
-				<fieldset>
-				<legend>neuer Eintrag</legend>
-					<?php
-						include("sub_addbuchung.php");
-					?>
-				</fieldset>
-			</div>
-		</div>
-		<div class="small-12 large-6 columns">
-			<div class="row">
-				<fieldset>
-				<legend>Eintrag suchen</legend>
-					<?php
-						include("sub_suchbuchung.php");
-					?>
-				</fieldset>
-			</div>
-		</div>
-	</div>
-
+	<?php
+		echo "<div class=\"row\">";
+			if ($showEingabemaske==1) {
+				if ($showSuchmaske==1) {
+					echo "<div class=\"small-12 large-6 columns\">";
+				} else {
+					echo "<div class=\"small-12 large-12 columns\">";
+				}
+					echo "<div class=\"row\">";
+						echo "<fieldset>";
+						echo "<legend>neuer Eintrag</legend>";
+							include("sub_addbuchung.php");
+						echo "</fieldset>";
+					echo "</div>";
+				echo "</div>";
+			}
+			if ($showSuchmaske==1) {
+				if ($showEingabemaske==1) {
+					echo "<div class=\"small-12 large-6 columns\">";
+				} else {
+					echo "<div class=\"small-12 large-12 columns\">";
+				}
+					echo "<div class=\"row\">";
+						echo "<fieldset>";
+						echo "<legend>Eintrag suchen</legend>";
+							include("sub_suchbuchung.php");
+						echo "</fieldset>";
+					echo "</div>";
+				echo "</div>";
+			}
+		echo "</div>";
+	?>
 	<div class="row">
 		<fieldset>
 			<legend>Tabelle</legend>
 			<?php
 				$abfrage="SELECT * FROM buchungen INNER JOIN metadaten as meta ON (idBuchung = meta.id) inner join buchung_kategorie as buchung on (buchung.buchung_kategorieID = konto) inner join verwendung as verw on (verw.verwendungID = meta.verwendung) ".$whereClause." ORDER BY ".$sort." ".$sortBy;
-				$ergebnis = mysql_query($abfrage);
-				$menge = mysql_num_rows($ergebnis);
+				$ergebnis = mysqli_query($abfrage);
+				$menge = mysqli_num_rows($ergebnis);
 
 				$abfrage=$abfrage." LIMIT ".$_SESSION['startPage'].",".$maxEintraegeProSite;
-				$ergebnis = mysql_query($abfrage);
+				$ergebnis = mysqli_query($abfrage);
 //				echo $abfrage;
 
 				$abfrage2="SELECT sum(betrag) as summe FROM buchungen INNER JOIN metadaten as meta ON (idBuchung = meta.id) inner join buchung_kategorie as buchung on (buchung.buchung_kategorieID = konto) inner join verwendung as verw on (verw.verwendungID = meta.verwendung) ".$whereClause." ORDER BY ".$sort." ".$sortBy;
 //				echo "<br>",$abfrage2;
-				$ergebnis2=mysql_query($abfrage2);
-				$row2 = mysql_fetch_assoc($ergebnis2);
+				$ergebnis2=mysqli_query($abfrage2);
+				$row2 = mysqli_fetch_assoc($ergebnis2);
 				$summe = $row2['summe'];
 
 				echo "<div class=\"row\">";
@@ -267,23 +284,23 @@
 					echo "</div>";
 				echo "</div>";
 				echo "<hr>";
-				while($row = mysql_fetch_object($ergebnis)) {
+				while($row = mysqli_fetch_object($ergebnis)) {
 					echo "<hr>";
 					echo "<div class=\"row\">";
 						echo "<div class=\"small-12 large-1 columns\">";
 							echo date("d.m.y",strtotime($row->datum));
 						echo "</div>";
 						echo "<div class=\"small-12 large-3 columns\">";
-							echo "<a href=\"main_suche.php?konto=".$row->buchung_kategorieID."\">".$row->buchung_kategorie."</a>";
+							echo "<a href=\"main_suche.php?reset=true&konto=".$row->buchung_kategorieID."\">".$row->buchung_kategorie."</a>";
 						echo "</div>";
 						echo "<div class=\"small-12 large-3 columns\">";
-							echo "<a href=\"main_suche.php?verwendung=".$row->verwendungID."\">".$row->verwendung."</a>";
+							echo "<a href=\"main_suche.php?reset=true&verwendung=".$row->verwendungID."\">".$row->verwendung."</a>";
 						echo "</div>";
 						echo "<div class=\"small-12 large-1 columns\">";
 							echo "<a class=\"has-tip\" title=\"Zeige diese Buchung und die Gegenbuchung an\" href=\"main_suche.php?reset=true&id=".$row->idBuchung."\">".str_replace(".",",",$row->betrag)."</a>";
 						echo "</div>";
 						echo "<div class=\"small-12 large-4 columns\">";
-							echo "<a class=\"has-tip\" title=\"Editiere die Buchung\" href=\"sub_editbuchung.php?id=".$row->idBuchung."\">".$row->beschreibung."</a>";
+							echo "<a class=\"has-tip\" title=\"Editiere die Buchung\" href=\"sub_editbuchung.php?reset=true&id=".$row->idBuchung."\">".$row->beschreibung."</a>";
 						echo "</div>";
 					echo "</div>";
 				}
@@ -332,7 +349,7 @@
 	</div>
 
 	<?php
-		mysql_close($verbindung);
+		mysqli_close($verbindung);
 	?>
 
 

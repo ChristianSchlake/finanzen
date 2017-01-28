@@ -38,6 +38,8 @@
 	$deleteStatus=0;
 	$suchWert="%";
 	$editWert="";
+	$eintragEintragen="0";
+	$eintragSuchen="0";
 	$editNeuerWert="";
 	$tabellenBeschreibung="";
 //	print_r($_GET);
@@ -49,6 +51,16 @@
 				if ($spaltenName[$i]==$tabelle) {
 					$tabellenBeschreibung=$spaltenBeschreibung[$i];
 				}
+			}
+		}
+		if ($key=="uebergabe") {
+			switch ($value) {
+				case "suchen":
+					$eintragSuchen=1;
+					break;
+				case "eingabe":
+					$eintragEintragen=1;
+					break;
 			}
 		}
 		if ($key=="tabellenBeschreibung") {$tabellenBeschreibung=$value;}
@@ -87,34 +99,37 @@
 	if ($updateStatus==1) {
 		$abfrage="UPDATE ".$tabelle." SET ".$tabelle." =\"".$editWert."\" WHERE ".$tabelle."ID=\"".$updateID."\"";
 		mysql_query($abfrage);
-//		echo $abfrage,"<br>";
 		$abfrage="UPDATE ".$tabelle."Structure SET father=\"".$editWertID."\" WHERE son=\"".$updateID."\"";
 		mysql_query($abfrage);
-//		echo $abfrage;
 	}
 
 	if ($deleteStatus==1) {
 		$abfrage="DELETE FROM ".$tabelle." WHERE ".$tabelle."ID=\"".$updateID."\"";
-//		echo $abfrage,"<br>";
 		mysql_query($abfrage);
 		$abfrage="DELETE FROM ".$tabelle."Structure WHERE son=\"".$updateID."\" and father=\"".$idFatherOrig."\"";
-//		echo $abfrage;
 		mysql_query($abfrage);
 	}
-	if ($editNeuerWert!="") {
+	// neuerWert
+	if ($eintragEintragen==1) {
 		$sql="select MAX(".$tabelle."ID) from ".$tabelle;
 		$result=mysql_query($sql);
 		$maxID=mysql_result($result,0,0);
 		$maxID=$maxID+1;
-
 		$sql="insert into my_table(id, field1) values('$max','$this')";
-
-
 		$abfrage="INSERT INTO ".$tabelle." (".$tabelle.",".$tabelle."ID) VALUES (\"".$editNeuerWert."\",\"".$maxID."\")";
-//		echo $abfrage,"<br>";
 		mysql_query($abfrage);
 		$abfrage="INSERT INTO ".$tabelle."Structure (father, son) VALUES (\"".$editNeuerWert."\", \"".$maxID."\")";
-//		echo $abfrage;
+		mysql_query($abfrage);
+	}
+	if ($eintragEintragen==1) {
+		$sql="select MAX(".$tabelle."ID) from ".$tabelle;
+		$result=mysql_query($sql);
+		$maxID=mysql_result($result,0,0);
+		$maxID=$maxID+1;
+		$sql="insert into my_table(id, field1) values('$max','$this')";
+		$abfrage="INSERT INTO ".$tabelle." (".$tabelle.",".$tabelle."ID) VALUES (\"".$editNeuerWert."\",\"".$maxID."\")";
+		mysql_query($abfrage);
+		$abfrage="INSERT INTO ".$tabelle."Structure (father, son) VALUES (\"".$editNeuerWert."\", \"".$maxID."\")";
 		mysql_query($abfrage);
 	}
 	
@@ -148,7 +163,7 @@
 
 <!-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
 <!-- Suchformular -->
-<div class="row collapse">
+<!--div class="row collapse">
 	<fieldset>
 		<?php
 			echo "<legend>".$tabellenBeschreibung."</legend>";
@@ -157,6 +172,7 @@
 			<?php
 				echo "<input type=\"hidden\" name=\"editStatus\" value=\"".$editStatus."\">";
 				echo "<input type=\"hidden\" name=\"tabelle\" value=\"".$tabelle."\"\>";
+				echo "<input type=\"hidden\" name=\"uebergabe\" value=\"suchen\"\>";
 			?>
 			<div class="small-8 columns">
 				<input type="text" placeholder="Suche" name="suchWert">
@@ -166,10 +182,10 @@
 			</div>
 		</form>		
 	</fieldset>
-</div>
+</div-->
 
 <!-- ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- -->
-<!-- Suchformular -->
+<!-- Eingabeformular -->
 <div class="row collapse">
 	<fieldset>
 		<?php
@@ -182,6 +198,7 @@
 						echo "<input type=\"hidden\" name=\"editStatus\" value=\"0\">";
 						echo "<input type=\"hidden\" name=\"tabelle\" value=\"".$tabelle."\"\>";					
 						echo "<input type=\"text\" placeholder=\"Beschreibung\" name=\"editNeuerWert\">";
+						echo "<input type=\"hidden\" name=\"uebergabe\" value=\"eingabe\"\>";
 					?>
 				</div>
 			</div>
@@ -281,33 +298,6 @@
 		}
 	}
 ?>
-
-<!--div id="eingabeModal2" class="reveal-modal" data-reveal>
-	<fieldset>
-		<?php
-			echo "<legend>Eingabeformular - ".$tabellenBeschreibung."</legend>"
-		?>
-		<form action="sub_verwalte_auswahlStruktur.php" method="GET" class="custom">
-			<div class="row collapse">
-				<div class="small-12 large-12 columns">
-					<?php
-						echo "<input type=\"hidden\" name=\"editStatus\" value=\"0\">";
-						echo "<input type=\"hidden\" name=\"tabelle\" value=\"".$tabelle."\"\>";					
-						echo "<input type=\"text\" placeholder=\"Beschreibung\" name=\"editNeuerWert\">";
-					?>
-				</div>
-			</div>
-			<div class="row collapse">
-				<div class="small-12 large-12 columns">
-					<button class="button expand" type="Submit">eintragen</button>
-				</div>
-			</div>
-		</form>
-	</fieldset>
-</div-->
-
-
-
 
 <?php
 	mysql_close($verbindung);
